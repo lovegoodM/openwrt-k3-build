@@ -1,0 +1,236 @@
+#!/bin/sh
+
+# 修改root密码
+#password=$(openssl passwd -1 'admin')
+#sed -i "s|root::0:0:99999:7:::|root:$password:0:0:99999:7:::|g" /etc/shadow
+#sed -i 's|root:x:0:0:root:/root:/bin/ash|root:x:0:0:root:/root:/bin/bash|g' /etc/passwd
+
+# 设置主机名称
+sed -i 's/OpenWrt/MJ_OWrt/g' /bin/config_generate
+
+# 设置时区
+sed -i 's/UTC/CST-8/g' /bin/config_generate
+
+# 修改默认登陆IP地址
+sed -i 's/192.168.1.1/192.168.6.1/g' /bin/config_generate
+
+# 取消默认uhttpd使用https
+sed -i '/https/d' /etc/config/uhttpd
+# 修改私钥为pem结构
+sed -i 's/-outform der/-outform pem/' /etc/init.d/uhttpd
+
+# 主题语言设置
+uci set luci.main.lang=zh_cn
+uci set luci.main.mediaurlbase="/luci-static/material"
+uci set luci.apply=internal
+uci set luci.apply.rollback='30'
+uci set luci.apply.holdoff='1'
+uci set luci.apply.timeout='3'
+uci set luci.apply.display='1'
+uci commit luci
+
+# 设置时区
+uci set system.@system[0].timezone=CST-8
+uci set system.@system[0].zonename=Asia/Shanghai
+uci set system.@system[0].hostname=MJ_OWrt
+uci del system.ntp.enabled 2>/dev/null
+uci del system.ntp.enable_server 2>/dev/null
+uci del system.ntp.server 2>/dev/null
+uci add_list system.ntp.server=ntp1.aliyun.com
+uci add_list system.ntp.server=time1.cloud.tencent.com
+uci add_list system.ntp.server=time.ustc.edu.cn
+uci add_list system.ntp.server=pool.ntp.org
+
+# 设置 log 调试等级
+uci set system.@system[0].log_size='64'
+uci set system.@system[0].conloglevel='4'
+uci set system.@system[0].cronloglevel='9'
+uci set system.@system[0].log_proto='udp'
+uci commit system
+
+# 设置默认管理IP地址
+uci set network.lan.ipaddr='192.168.6.1'
+uci set network.lan.netmask='255.255.255.0'
+
+# IPV6设置
+uci del network.globals.ula_prefix 2>/dev/null
+uci del network.lan.delegate 2>/dev/null
+uci set network.wan6.reqaddress='try'
+uci set network.wan6.reqprefix='auto'
+uci commit network
+
+# 使用内置的 IPv6 管理
+uci set dhcp.lan.ra_management='1'
+
+# dhcp设置
+uci set dhcp.lan.start='1'
+uci set dhcp.lan.limit='254'
+uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+uci commit dhcp
+
+# 挂载设置
+uci set fstab.@global[0].anon_mount='1'
+uci commit fstab
+
+# 修改系统连接数
+sed -i '/net.netfilter.nf_conntrack_max/d' /etc/sysctl.conf
+echo -e >> /etc/sysctl.conf && echo "net.netfilter.nf_conntrack_max=65536" >> /etc/sysctl.conf
+
+# 更改插件选项卡位置
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/settings_header.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/log_template.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/minidlna_status.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/\"services\"/\"control\"/g'  /usr/lib/lua/luci/controller/wifischedule/wifi_schedule.lua
+sed -i 's/\"services\"/\"control\"/g'  /usr/lib/lua/luci/controller/wol.lua
+sed -i 's/\"services\"/\"control\"/g'  /usr/lib/lua/luci/controller/mia.lua
+sed -i 's/services/control/g' /usr/lib/lua/luci/view/mia/mia_status.htm
+sed -i 's/\"network\"/\"control\"/g'  /usr/lib/lua/luci/controller/appfilter.lua
+sed -i 's/network/control/g'  /usr/lib/lua/luci/view/admin_network/user_status.htm
+sed -i 's/\"services\"/\"vpn\"/g'  /usr/lib/lua/luci/controller/frp.lua
+sed -i 's/\"services\"/\"vpn\"/g'  /usr/lib/lua/luci/model/cbi/frp/config.lua
+sed -i 's/\"services\"/\"vpn\"/g'  /usr/lib/lua/luci/model/cbi/frp/frp.lua
+sed -i 's/services/vpn/g'  /usr/lib/lua/luci/view/frp/frp_status.htm
+sed -i 's/\"system\"/\"nas\"/g' /usr/lib/lua/luci/controller/filetransfer.lua
+sed -i 's/services/system/g' /usr/share/luci/menu.d/luci-app-uhttpd.json
+
+# 负载均衡需要的
+ln -sf /sbin/ip /usr/bin/ip
+
+# 替换源地址
+sed -i 's/http:/https:/g' /etc/opkg/distfeeds.conf
+#sed -i "s/# //g" /etc/opkg/distfeeds.conf
+sed -i 's#downloads.openwrt.org#mirrors.tuna.tsinghua.edu.cn/openwrt#g' /etc/opkg/distfeeds.conf
+sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
+
+# 修改wireless设置
+sed -i '/option disabled/d' /etc/config/wireless
+#sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
+# 启动 无线
+#wifi up
+
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+echo "DISTRIB_REVISION='R$(date)'" >> /etc/openwrt_release
+
+# 禁止 dnsmasq 输出日志
+sed -i '/log-facility/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
+
+sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
+
+# 防火墙添加FullCone-NAT选项
+sed -i "s/if(L.hasSystemFeature('offloading'))/o=s.option(form.Flag,'fullcone',_('启用 FullCone-NAT'));if(L.hasSystemFeature('offloading'))/g" /www/luci-static/resources/view/firewall/zones.js
+
+# 菜单选项卡
+mkdir -p /tmp/ttypatches
+myfile="/usr/share/luci/menu.d/luci-base.json"
+controlLine=`sed -n '/admin\/control/=' $myfile|head -n1`
+nasLine=`sed -n '/admin\/nas/=' $myfile|head -n1`
+vpnLine=`sed -n '/admin\/vpn/=' $myfile|head -n1`
+startLine=`sed -n '/admin\/network/=' $myfile|head -n1`
+let startLine="startLine - 1"
+
+if [ -z "$controlLine" ]; then
+cat>/tmp/ttypatches/index_control_menu<<EOF
+	"admin/control": {
+		"title": "管控",
+		"order": 46,
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		}
+	},
+	
+EOF
+sed -i $startLine' r /tmp/ttypatches/index_control_menu' $myfile
+fi
+
+if [ -z "$nasLine" ]; then
+cat>/tmp/ttypatches/index_nsa_menu<<EOF
+	"admin/nas": {
+		"title": "网络储存",
+		"order": 45,
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		}
+	},
+	
+EOF
+sed -i $startLine' r /tmp/ttypatches/index_nsa_menu' $myfile
+fi
+
+if [ -z "$vpnLine" ]; then
+cat>/tmp/ttypatches/index_vps_menu<<EOF
+	"admin/vpn": {
+		"title": "VPN",
+		"order": 49,
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		}
+	},
+	
+EOF
+sed -i $startLine' r /tmp/ttypatches/index_vps_menu' $myfile
+else
+	let vpnLine="vpnLine + 2"
+	vpnorder=`head -${vpnLine} ${myfile}|tail -1|sed "s/[^0-9]//g"`
+	[ ! -z "$vpnorder" ] && sed -i "s/$vpnorder/49/g" $myfile
+fi
+
+
+# -----------------------------------------
+# 用户软件设置
+# -----------------------------------------
+
+# 修改 ssr 设置
+if [ -f "/etc/init.d/shadowsocksr" ] ; then
+	echo "0xDEADBEEF" > /etc/config/google_fu_mode
+fi
+
+# 修复autoreboot一次不生效的问题
+if [ -f "/etc/init.d/autoreboot" ] ; then
+	sed -i "s/config_load autoreboot/sleep 2\n\t&/" /etc/init.d/autoreboot
+	sed -i "s#/etc/init.d/autoreboot restart#/etc/init.d/autoreboot restart \&#g" /usr/lib/lua/luci/model/cbi/autoreboot.lua
+fi
+
+# 修复smartdns一点小bug
+# [ -f "/etc/init.d/smartdns" ] && sed -i 's#\[ "$old_enabled" = "1" -a "$enabled" = "0" \]#& || \[ "$old_enabled" = "$enabled" -a "$enabled" = "1" \]#' /etc/init.d/smartdns
+
+# 开启upnp
+[ -f "/etc/config/upnpd" ] && sed -i "s/enabled.*/enabled '1'/" /etc/config/upnpd
+
+# 关闭mwan3
+[ -f "/etc/config/mwan3" ] && sed -i "s/enabled.*/enabled '0'/g; s/8.8.4.4/223.5.5.5/g; s/8.8.8.8/119.29.29.29/g" /etc/config/mwan3
+
+# https-dns-proxy自动开启关闭
+[ -f "/etc/init.d/https-dns-proxy" ] && /etc/init.d/https-dns-proxy disable
+
+# 禁用某些可能会自启动且用不上的依赖包服务
+/etc/init.d/php7-fastcgi disable 2>/dev/null
+/etc/init.d/php7-fpm disable 2>/dev/null
+/etc/init.d/softethervpnbridge disable 2>/dev/null
+/etc/init.d/softethervpnserver disable 2>/dev/null
+/etc/init.d/softethervpnclient disable 2>/dev/null
+/etc/init.d/haproxy disable 2>/dev/null
+/etc/init.d/kcptun disable 2>/dev/null
+/etc/init.d/ddns disable 2>/dev/null
+[ -f "/etc/init.d/kms" ] && sed -i '/enabled/d' /etc/config/vlmcsd
+/etc/init.d/kms disable 2>/dev/null
+
+# 删除 luci 缓存并重启 uhttpd
+rm -rf /tmp/luci-modulecache/
+rm -f /tmp/luci-indexcache*
+/etc/init.d/uhttpd restart && /etc/init.d/rpcd restart
+
+exit 0
+

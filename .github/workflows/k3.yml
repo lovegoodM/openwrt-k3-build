@@ -1,0 +1,172 @@
+#=================================================
+# https://github.com/P3TERX/Actions-OpenWrt
+# Description: Build OpenWrt using GitHub Actions
+# Lisence: MIT
+# Author: P3TERX
+# Blog: https://p3terx.com
+#=================================================
+
+name: K3 OpenWrt
+
+on:
+#  release:
+#    types: [published]
+#  push:
+#    branches:
+#    - master
+#    paths:
+#    - '.config'
+  schedule:
+    - cron: 0 23 * * 5
+  watch:
+    types: [started]
+
+env:
+  REPO_URL: https://github.com/openwrt/openwrt.git
+  REPO_BRANCH: openwrt-19.07
+  CONFIG_FILE: k3.config
+  SSH_ACTIONS: false
+  UPLOAD_RELEASE: true
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: false
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install jq build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler git-core antlr3 gperf libreadline-dev ccache curl wget vim nano python python3 python3.5 python-pip python3-pip python-ply python3-ply haveged lrzsz scons ecj fastjar mkisofs
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+
+    - name: Clone source code
+      run: git clone --depth 1 $REPO_URL --branch $REPO_BRANCH openwrt
+
+    - name: Update feeds
+      run: cd openwrt && ./scripts/feeds clean && ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      working-directory: ./openwrt
+      run: |
+        /bin/bash ../server/scripts/diy.sh
+
+    - name: Convert Translation
+      working-directory: ./openwrt
+      run: |
+        /bin/bash ../server/scripts/convert_translation.sh
+
+    - name: Add ACL
+      working-directory: ./openwrt
+      run: |
+        # /bin/bash ../server/scripts/create_acl_for_luci.sh -a
+
+    - name: Make Config
+      run: |
+        [ -e files ] && mv files openwrt/files
+        [ -e server/seed/$CONFIG_FILE ] && mv server/seed/$CONFIG_FILE openwrt/.config
+        cd openwrt
+        make defconfig
+
+    - name: SSH connection to Actions
+      uses: P3TERX/debugger-action@main
+      if: env.SSH_ACTIONS == 'true'
+
+    - name: Download package
+      id: package
+      run: |
+        cd openwrt
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(($(nproc)+2)) thread compile"
+        make -j$(($(nproc)+2)) || make -j1 V=s
+        echo "::set-output name=status::success"
+
+    - name: Upload bin directory
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: OpenWrt_directory
+        path: openwrt/bin
+
+    - name: Organize files
+      id: organize
+      if: (!cancelled())
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "FIRMWARE=$(pwd)" >> $GITHUB_ENV
+
+    - name: Upload firmware directory
+      uses: actions/upload-artifact@main
+      if: env.UPLOAD_FIRMWARE == 'true'
+      with:
+        name: OpenWrt_firmware
+        path: ${{ env.FIRMWARE }}
+
+    - name: Push firmware
+      env:
+        PUSH_TOKEN: ${{ secrets.ACTION_TOKEN }}
+      run: |
+        mkdir -p firmware-branch
+        cd firmware-branch
+        git init
+        mv -f ${FIRMWARE}/* ./
+        ls -al
+        git config --local user.email "FUCK@github.com"
+        git config --local user.name "FUCK"
+        git add -f ./
+        git commit -m "firmware"
+        git push --force --quiet https://${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:firmware
+        rm -rf .git
+
+    - name: Generate release tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        #echo "RELEASE_TAG=$(TZ=UTC-8 date +'%Y.%m.%d')" >> $GITHUB_ENV
+        echo "RELEASE_TAG=OpenWrt-firmware" >> $GITHUB_ENV
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      if: env.UPLOAD_RELEASE == 'true'
+      with:
+        keep_latest: 0
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+
+    - name: Upload to release
+      uses: 1005789164/action-release@1.0
+      if: env.UPLOAD_RELEASE == 'true'
+      with:
+        token: ${{ secrets.ACTION_TOKEN }}
+        gzip: false
+        files: >
+          firmware-branch/*
+        allow_override: true
+
+    - name: Delete workflow runs
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 30
+        keep_minimum_runs: 1

@@ -1,0 +1,159 @@
+bind_host: 0.0.0.0
+bind_port: 3000
+users:
+- name: root
+  password: $2y$10$HWtQ3u91r07UEGqvd9x1sud9LCKKxvVFTamDnGUoNbZVa7RyHVZgu
+http_proxy: ""
+language: ""
+rlimit_nofile: 0
+debug_pprof: false
+web_session_ttl: 720
+dns:
+  bind_host: 0.0.0.0
+  port: 8053
+  statistics_interval: 1
+  querylog_enabled: false
+  querylog_file_enabled: true
+  querylog_interval: 1
+  querylog_size_memory: 1000
+  anonymize_client_ip: false
+  protection_enabled: true
+  blocking_mode: default
+  blocking_ipv4: ""
+  blocking_ipv6: ""
+  blocked_response_ttl: 10
+  parental_block_host: family-block.dns.adguard.com
+  safebrowsing_block_host: standard-block.dns.adguard.com
+  ratelimit: 0
+  ratelimit_whitelist: []
+  refuse_any: false
+  upstream_dns:
+  - tls://dns.pub
+  - https://dns.pub/dns-query
+  - tls://dns.alidns.com
+  - https://dns.alidns.com/dns-query
+  upstream_dns_file: ""
+  bootstrap_dns:
+  - 211.142.211.124
+  - 111.8.14.18
+  - 2409:8050:2000:1000::1
+  - 2409:8050:2000::1
+  - 119.29.29.29
+  - 223.5.5.5
+  all_servers: false
+  fastest_addr: false
+  allowed_clients: []
+  disallowed_clients: []
+  blocked_hosts:
+  - version.bind
+  - id.server
+  - hostname.bind
+  cache_size: 4194304
+  cache_ttl_min: 600
+  cache_ttl_max: 3600
+  bogus_nxdomain: []
+  aaaa_disabled: false
+  enable_dnssec: true
+  edns_client_subnet: true
+  max_goroutines: 300
+  ipset: []
+  filtering_enabled: true
+  filters_update_interval: 24
+  parental_enabled: false
+  safesearch_enabled: false
+  safebrowsing_enabled: false
+  safebrowsing_cache_size: 1048576
+  safesearch_cache_size: 1048576
+  parental_cache_size: 1048576
+  cache_time: 30
+  rewrites: []
+  blocked_services: []
+tls:
+  enabled: false
+  server_name: ""
+  force_https: false
+  port_https: 543
+  port_dns_over_tls: 853
+  port_dns_over_quic: 963
+  allow_unencrypted_doh: false
+  strict_sni_check: false
+  certificate_chain: ""
+  private_key: ""
+  certificate_path: ""
+  private_key_path: ""
+filters:
+- enabled: false
+  url: https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt
+  name: AdGuard DNS Filter
+  id: 1
+- enabled: false
+  url: https://banbendalao.coding.net/p/adgk/d/ADgk/git/raw/master/ADgk.txt
+  name: ADgk
+  id: 2
+- enabled: false
+  url: https://anti-ad.net/easylist.txt
+  name: anti-AD
+  id: 3
+- enabled: false
+  url: https://gitee.com/halflife/list/raw/master/ad.txt
+  name: halflife
+  id: 4
+- enabled: false
+  url: https://easylist-downloads.adblockplus.org/easylist.txt
+  name: EasyList
+  id: 5
+- enabled: false
+  url: https://easylist-downloads.adblockplus.org/easylistchina.txt
+  name: EasyList China
+  id: 6
+- enabled: false
+  url: https://easylist-downloads.adblockplus.org/easyprivacy.txt
+  name: EasyPrivacy
+  id: 7
+- enabled: false
+  url: https://gitee.com/xinggsf/Adblock-Rule/raw/master/rule.txt
+  name: Xinggsf 乘风通用
+  id: 8
+- enabled: false
+  url: https://gitee.com/xinggsf/Adblock-Rule/raw/master/mv.txt
+  name: Xinggsf 乘风视频
+  id: 9
+- enabled: false
+  url: https://www.malwaredomainlist.com/hostslist/hosts.txt
+  name: MalwareDomainList
+  id: 10
+- enabled: false
+  url: https://easylist-downloads.adblockplus.org/antiadblockfilters.txt
+  name: Adblock Warning Removal List
+  id: 11
+- enabled: false
+  url: https://easylist-downloads.adblockplus.org/fanboy-annoyance.txt
+  name: Fanboy's Annoyances List
+  id: 12
+whitelist_filters: []
+user_rules: []
+dhcp:
+  enabled: false
+  interface_name: ""
+  dhcpv4:
+    gateway_ip: ""
+    subnet_mask: ""
+    range_start: ""
+    range_end: ""
+    lease_duration: 86400
+    icmp_timeout_msec: 1000
+    options: []
+  dhcpv6:
+    range_start: ""
+    lease_duration: 86400
+    ra_slaac_only: false
+    ra_allow_slaac: false
+clients: []
+log_compress: false
+log_localtime: false
+log_max_backups: 0
+log_max_size: 100
+log_max_age: 3
+log_file: ""
+verbose: false
+schema_version: 7
