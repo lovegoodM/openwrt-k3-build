@@ -142,23 +142,15 @@ jobs:
         #echo "RELEASE_TAG=$(TZ=UTC-8 date +'%Y.%m.%d')" >> $GITHUB_ENV
         echo "RELEASE_TAG=OpenWrt-firmware_Lienol_generic" >> $GITHUB_ENV
 
-    - name: Remove old Releases
-      uses: dev-drprasad/delete-older-releases@v0.1.0
-      if: env.UPLOAD_RELEASE == 'true'
-      with:
-        keep_latest: 0
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
-
     - name: Upload to release
-      uses: 1005789164/action-release@1.0
+      uses: 1005789164/action-release@js
       if: env.UPLOAD_RELEASE == 'true'
       with:
         token: ${{ secrets.ACTION_TOKEN }}
         gzip: false
         files: >
           firmware-branch/*
+        allow_del: true
         allow_override: true
 
     - name: Delete workflow runs
