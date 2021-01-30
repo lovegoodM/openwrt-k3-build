@@ -38,7 +38,7 @@ git clone --depth 1 https://github.com/1005789164/luci-app-k3screenctrl.git pack
 git clone --depth 1 https://github.com/1005789164/k3screenctrl_build.git package/MJ/k3screenctrl_build
 
 # k3usb
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/zxlhhyccc/luci-app-k3usb/ package/MJ/luci-app-k3usb
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/luci-app-k3usb/ package/MJ/luci-app-k3usb
 sed -i 's/LUCI_DEPENDS:=.*/LUCI_DEPENDS:=/' package/MJ/luci-app-k3usb/Makefile
 
 # 增加 luci-theme-argon
@@ -100,7 +100,9 @@ git clone --depth 1 https://github.com/project-openwrt/luci-app-koolproxyR.git p
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-mwan3helper package/MJ/luci-app-mwan3helper
 
 # OpenClash
-svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash/ package/MJ/luci-app-openclash
+git clone --depth 1 https://github.com/vernesong/OpenClash.git package/MJ/OpenClash
+mv package/MJ/OpenClash/luci-app-openclash package/MJ/
+rm -rf package/MJ/OpenClash
 
 # 下载Lienol软件包
 git clone --depth 1 https://github.com/Lienol/openwrt-package.git openwrt-package
