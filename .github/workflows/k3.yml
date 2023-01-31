@@ -9,17 +9,15 @@
 name: K3 OpenWrt
 
 on:
-#  release:
-#    types: [published]
-#  push:
-#    branches:
-#    - master
-#    paths:
-#    - '.config'
-  schedule:
-    - cron: 0 23 * * 5
-  watch:
-    types: [started]
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+#  watch:
+#    types: [started]
 
 env:
   REPO_URL: https://github.com/openwrt/openwrt.git
