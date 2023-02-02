@@ -40,3 +40,14 @@ rm $LUCI_DIR/luci-app-openclash/root/etc/openclash/core/*tar*
 svn co https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/luci-app-k3usb $LUCI_DIR/luci-app-k3usb
 sed -i '/LUCI_DEPENDS/d' $LUCI_DIR/luci-app-k3usb/Makefile
 
+# 添加新屏幕
+rm -rf package/lean/k3screenctrl/
+git clone --depth 1 https://github.com/1005789164/luci-app-k3screenctrl.git $LUCI_DIR/luci-app-k3screenctrl
+git clone --depth 1 https://github.com/1005789164/k3screenctrl_build.git $LUCI_DIR/k3screenctrl_build
+
+# 删除防火墙命令
+sed -i -r 's/(.*-t nat -A PREROUTING.*)/#\1/g' package/lean/default-settings/files/zzz-default-settings
+
+# 修改信息
+sed -i "s/DISTRIB_DESCRIPTION='*.*'/DISTRIB_DESCRIPTION='hahaha'/g" package/lean/default-settings/files/zzz-default-settings
+sed -i "s/DISTRIB_REVISION='*.*'/DISTRIB_REVISION=' oooooo-$(date +%Y%m%d) '/g" package/lean/default-settings/files/zzz-default-settings

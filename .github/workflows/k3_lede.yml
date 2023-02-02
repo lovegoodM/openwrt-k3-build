@@ -98,6 +98,7 @@ jobs:
         echo -e "$(($(nproc)+2)) thread compile"
         make -j$(($(nproc)+2)) || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
+        df -h
 
     - name: Upload bin directory
       uses: actions/upload-artifact@main
@@ -127,13 +128,13 @@ jobs:
         echo "RELEASE_TAG=OpenWrt-firmware-lede" >> $GITHUB_ENV
 
     - name: Upload to release
-      uses: 1005789164/action-release@js
+      uses: 1005789164/action-release@docker
       if: env.UPLOAD_RELEASE == 'true'
       with:
         token: ${{ secrets.ACTION_TOKEN }}
         gzip: false
         files: >
-          ${{ env.FIRMWARE }}/*
+          openwrt/bin/targets/*/*/*
         allow_del: true
         allow_override: true
 
