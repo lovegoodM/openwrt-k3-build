@@ -14,18 +14,26 @@ on:
     inputs:
       ssh:
         description: 'SSH connection to Actions'
+        type: boolean
         required: false
-        default: 'false'
-#  watch:
-#    types: [started]
+        default: false
+      upload_firmware:
+        type: boolean
+        required: false
+        default: true
+      upload_pck:
+        type: boolean
+        required: false
+        default: false
+      upload_release:
+        type: boolean
+        required: false
+        default: true
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: k3_lede.config
-  UPLOAD_RELEASE: true
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
   TZ: Asia/Shanghai
 
 jobs:
@@ -102,7 +110,7 @@ jobs:
 
     - name: Upload bin directory
       uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      if: steps.compile.outputs.status == 'success' && inputs.upload_pck == true
       with:
         name: OpenWrt_directory
         path: openwrt/bin
@@ -117,24 +125,24 @@ jobs:
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
-      if: env.UPLOAD_FIRMWARE == 'true'
+      if: inputs.upload_firmware == true
       with:
         name: OpenWrt_firmware
         path: ${{ env.FIRMWARE }}
 
     - name: Generate release tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: inputs.upload_release == true && !cancelled()
       run: |
         echo "RELEASE_TAG=OpenWrt-firmware-lede" >> $GITHUB_ENV
 
     - name: Upload to release
-      uses: 1005789164/action-release@docker
-      if: env.UPLOAD_RELEASE == 'true'
+      uses: lovegoodM/action-release@docker
+      if: inputs.upload_release == true
       with:
         token: ${{ secrets.ACTION_TOKEN }}
         gzip: false
         files: >
-          openwrt/bin/targets/*/*/*
+          ${{ env.FIRMWARE }}
         allow_del: true
         allow_override: true
 
