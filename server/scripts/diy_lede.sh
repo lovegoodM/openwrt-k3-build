@@ -2,6 +2,8 @@
 
 LUCI_DIR='package/mj'
 PACK_DIR='package/mj'
+FEEDS_LUCI='package/feeds/luci'
+FEEDS_PCK='package/feeds/packages'
 ln -s ../feeds/luci/luci.mk package/luci.mk
 
 # 修改编译选项为Ofast
@@ -29,19 +31,30 @@ rm -rf feeds/luci/applications/luci-app-argon-config/ feeds/luci/themes/luci-the
 git clone --depth=1 -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git $LUCI_DIR/luci-theme-argon
 git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config $LUCI_DIR/luci-app-argon-config
 
+# aliyundrive
+rm -rf $FEEDS_LUCI/luci-app-aliyundrive-webdav $FEEDS_PCK/aliyundrive-webdav
+rm -rf $FEEDS_LUCI/luci-app-aliyundrive-fuse $FEEDS_PCK/aliyundrive-fuse
+svn co https://github.com/messense/aliyundrive-webdav/trunk/openwrt $LUCI_DIR
+rm -rf $LUCI_DIR/.svn
+svn co https://github.com/messense/aliyundrive-fuse/trunk/openwrt $LUCI_DIR
+rm -rf $LUCI_DIR/.svn
+
 # 添加openclash
+rm -rf $FEEDS_LUCI/luci-app-openclash
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash $LUCI_DIR/luci-app-openclash
 mkdir -p $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
-svn export https://github.com/vernesong/OpenClash/trunk/core-lateset/dev/clash-linux-armv5.tar.gz $LUCI_DIR/luci-app-openclash/root/etc/openclash/core/clash-linux-armv5.tar.gz
-tar xzf $LUCI_DIR/luci-app-openclash/root/etc/openclash/core/* -C $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
-rm $LUCI_DIR/luci-app-openclash/root/etc/openclash/core/*tar*
+svn export https://github.com/vernesong/OpenClash/trunk/core-lateset/dev/clash-linux-armv5.tar.gz $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
+tar xzf $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz -C $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
+rm $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
 
 # k3usb
+rm -rf $FEEDS_LUCI/luci-app-k3usb
 svn co https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/luci-app-k3usb $LUCI_DIR/luci-app-k3usb
 sed -i '/LUCI_DEPENDS/d' $LUCI_DIR/luci-app-k3usb/Makefile
 
 # 添加新屏幕
-rm -rf package/lean/k3screenctrl/
+rm -rf $FEEDS_LUCI/luci-app-k3screenctrl $FEEDS_PCK/*k3screenctrl*
+rm -rf package/lean/*k3screenctrl*
 git clone --depth 1 https://github.com/1005789164/luci-app-k3screenctrl.git $LUCI_DIR/luci-app-k3screenctrl
 git clone --depth 1 https://github.com/1005789164/k3screenctrl_build.git $LUCI_DIR/k3screenctrl_build
 
