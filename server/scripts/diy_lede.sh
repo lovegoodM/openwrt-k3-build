@@ -68,6 +68,7 @@ sed -i '/LUCI_DEPENDS/d' $LUCI_DIR/luci-app-k3usb/Makefile
 # autotimeset
 rm -rf $FEEDS_LUCI/luci-app-autotimeset
 git clone --depth 1 https://github.com/sirpdboy/luci-app-autotimeset $LUCI_DIR/luci-app-autotimeset
+sed -i 's/"control"/"system"/' $LUCI_DIR/luci-app-autotimeset/luasrc/controller/autotimeset.lua
 
 # fileassistant
 rm -rf $FEEDS_LUCI/luci-app-fileassistant
