@@ -40,10 +40,7 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config $LUCI_DIR
 
 # aliyundrive
 rm -rf $FEEDS_LUCI/luci-app-aliyundrive-webdav $FEEDS_PCK/aliyundrive-webdav
-rm -rf $FEEDS_LUCI/luci-app-aliyundrive-fuse $FEEDS_PCK/aliyundrive-fuse
 svn co https://github.com/messense/aliyundrive-webdav/trunk/openwrt $LUCI_DIR
-rm -rf $LUCI_DIR/.svn
-svn co https://github.com/messense/aliyundrive-fuse/trunk/openwrt $LUCI_DIR
 rm -rf $LUCI_DIR/.svn
 
 # 添加openclash
@@ -78,3 +75,8 @@ svn co https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/l
 rm -rf $FEEDS_LUCI/luci-app-smartdns $FEEDS_PCK/*smartdns*
 git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns $LUCI_DIR/luci-app-smartdns
 git clone --depth=1 https://github.com/pymumu/openwrt-smartdns $PACK_DIR/smartdns
+
+# alist
+rm -rf $FEEDS_LUCI/luci-app-alist $FEEDS_PCK/alist
+git clone --depth=1 https://github.com/sbwml/luci-app-alist $LUCI_DIR/luci-app-alist
+
