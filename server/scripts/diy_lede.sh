@@ -47,9 +47,11 @@ rm -rf $LUCI_DIR/.svn
 rm -rf $FEEDS_LUCI/luci-app-openclash
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash $LUCI_DIR/luci-app-openclash
 mkdir -p $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
-svn export https://github.com/vernesong/OpenClash/trunk/core-lateset/dev/clash-linux-armv5.tar.gz $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
-tar xzf $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz -C $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
-rm $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
+svn export https://github.com/vernesong/OpenClash/branches/core/master/dev/clash-linux-armv5.tar.gz $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
+if [ -f $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz ]; then
+	tar xzf $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz -C $LUCI_DIR/luci-app-openclash/root/etc/openclash/core
+	rm $LUCI_DIR/luci-app-openclash/clash-linux-armv5.tar.gz
+fi
 
 # 添加新屏幕
 rm -rf $FEEDS_LUCI/luci-app-k3screenctrl $FEEDS_PCK/*k3screenctrl*
@@ -79,4 +81,3 @@ git clone --depth=1 https://github.com/pymumu/openwrt-smartdns $PACK_DIR/smartdn
 # alist
 rm -rf $FEEDS_LUCI/luci-app-alist $FEEDS_PCK/alist
 git clone --depth=1 https://github.com/sbwml/luci-app-alist $LUCI_DIR/luci-app-alist
-
